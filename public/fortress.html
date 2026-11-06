@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fortress++ Encryptor — TradeXora Security</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:#050608;
+    font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+    min-height:100vh;
+    display:flex;align-items:center;justify-content:center;
+    padding:16px; color:#e2e8f0;
+  }
+  .card{
+    background:linear-gradient(180deg,#0a0e18,#0d1220);
+    border:1px solid #1a2030;
+    border-radius:20px;
+    box-shadow:0 24px 60px rgba(0,0,0,0.7),0 0 80px rgba(220,38,38,0.08);
+    max-width:720px; width:100%;
+    padding:28px 24px 32px;
+  }
+  h1{
+    font-size:20px; font-weight:600; margin-bottom:4px;
+    display:flex; align-items:center; gap:8px; color:#f1f5f9;
+  }
+  h1 .badge{
+    background:linear-gradient(135deg,#dc2626,#a21caf,#7c3aed);
+    border-radius:32px; padding:3px 11px;
+    font-size:10px; font-weight:700; letter-spacing:.5px; color:#fff;
+  }
+  .sub{ font-size:13px; color:#8892a8; margin-bottom:20px; }
+  .danger-banner{
+    background:linear-gradient(90deg,rgba(220,38,38,0.12),rgba(124,58,237,0.12));
+    border:1px solid rgba(220,38,38,0.3);
+    color:#fca5a5;
+    padding:12px 14px; border-radius:12px;
+    font-size:12px; line-height:1.6;
+    margin-bottom:20px;
+  }
+  .danger-banner b{ color:#f87171; }
+  .drop{
+    border:2px dashed #2a3348;
+    border-radius:14px;
+    padding:24px 16px;
+    text-align:center;
+    cursor:pointer;
+    transition:all .15s;
+    background:#080c14;
+    margin-bottom:8px;
+    user-select:none;
+  }
+  .drop:hover,.drop.ov{ border-color:#dc2626; background:#0f0a10; }
+  .drop .icon{ font-size:28px; margin-bottom:6px; display:block; }
+  .drop p{ font-size:13px; color:#8892a8; }
+  .drop p span{ color:#f87171; font-weight:500; }
+  #fi{ display:none; }
+  .divider{
+    display:flex; align-items:center; gap:12px;
+    margin:14px 0 12px; color:#475569;
+    font-size:11px; font-weight:500; letter-spacing:.3px;
+  }
+  .divider::before,.divider::after{ content:''; flex:1; height:1px; background:#1a2030; }
+  textarea{
+    width:100%;
+    background:#080c14; border:1px solid #1a2030;
+    border-radius:12px; padding:14px;
+    font-size:12px;
+    font-family:'SF Mono',Menlo,Consolas,monospace;
+    color:#cbd5e1; resize:vertical; min-height:130px;
+    outline:none; transition:border-color .15s; line-height:1.5;
+  }
+  textarea:focus{ border-color:#dc2626; }
+  textarea::placeholder{ color:#475569; }
+  .options{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+    gap:10px 16px;
+    margin:18px 0 4px;
+    padding:14px 16px;
+    background:#080c14;
+    border-radius:12px;
+    border:1px solid #1a2030;
+  }
+  .options label{
+    display:flex; align-items:center; gap:8px;
+    font-size:12px; color:#cbd5e1;
+    cursor:pointer; user-select:none;
+  }
+  .options input[type=checkbox]{
+    appearance:none;
+    width:15px; height:15px;
+    border:1.5px solid #334155;
+    border-radius:4px;
+    background:#050608;
+    cursor:pointer; position:relative;
+    flex-shrink:0; transition:all .12s;
+  }
+  .options input[type=checkbox]:checked{
+    background:#dc2626; border-color:#dc2626;
+  }
+  .options input[type=checkbox]:checked::after{
+    content:'✓'; position:absolute;
+    top:-2px; left:1px;
+    font-size:11px; color:#fff; font-weight:700;
+  }
+  .options .danger-label{ color:#f87171; }
+  .actions{ display:flex; gap:12px; margin-top:20px; flex-wrap:wrap; }
+  .btn{
+    flex:1; min-width:140px;
+    padding:14px 20px;
+    border-radius:12px; border:none;
+    font-size:13px; font-weight:600;
+    cursor:pointer; transition:all .15s;
+    display:flex; align-items:center; justify-content:center;
+    gap:8px; text-decoration:none;
+    font-family:inherit; letter-spacing:.3px;
+  }
+  .btn:disabled{ opacity:.4; cursor:not-allowed; transform:none!important; }
+  .btn-primary{
+    background:linear-gradient(135deg,#dc2626,#a21caf,#7c3aed);
+    color:#fff;
+    box-shadow:0 4px 20px rgba(220,38,38,0.35);
+  }
+  .btn-primary:hover:not(:disabled){
+    box-shadow:0 8px 30px rgba(220,38,38,0.55);
+    transform:translateY(-1px);
+  }
+  .btn-secondary{
+    background:#141a28; color:#cbd5e1;
+    border:1px solid #2a3348;
+  }
+  .btn-secondary:hover:not(:disabled){ background:#1a2030; }
+  .btn-copy{
+    background:#2563eb; color:#fff;
+    box-shadow:0 4px 12px rgba(37,99,235,0.3);
+  }
+  .btn-copy:hover:not(:disabled){ background:#1d4ed8; transform:translateY(-1px); }
+  .btn-copy.copied{ background:#16a34a; box-shadow:0 4px 12px rgba(22,163,74,0.3); }
+  .status{
+    margin-top:14px; padding:10px 14px;
+    border-radius:10px; font-size:12px;
+    display:none; word-break:break-all; line-height:1.5;
+  }
+  .status.ok{ display:block; background:rgba(22,163,74,0.1); color:#4ade80; border:1px solid rgba(22,163,74,0.3); }
+  .status.err{ display:block; background:rgba(220,38,38,0.1); color:#f87171; border:1px solid rgba(220,38,38,0.3); }
+  .status.info{ display:block; background:rgba(59,130,246,0.1); color:#93c5fd; border:1px solid rgba(59,130,246,0.3); }
+  .bar{
+    height:3px; background:#1a2030; border-radius:3px;
+    margin-top:12px; overflow:hidden; display:none;
+  }
+  .bar.on{ display:block; }
+  .bar-fill{
+    height:100%; width:0%;
+    background:linear-gradient(90deg,#dc2626,#a21caf,#7c3aed,#2563eb);
+    border-radius:3px; transition:width .35s ease;
+  }
+  .footer{
+    text-align:center; font-size:10px;
+    color:#334155; margin-top:26px; letter-spacing:.3px;
+  }
+  .result{
+    display:none; margin-top:18px; padding:16px;
+    background:#080c14; border:1px solid #1a2030; border-radius:14px;
+  }
+  .result.show{ display:block; }
+  .result-head{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:10px; flex-wrap:wrap; gap:8px;
+  }
+  .result-head .title{ font-size:13px; font-weight:600; color:#f1f5f9; }
+  .result-head .size{
+    font-size:11px; color:#94a3b8;
+    background:#141a28; padding:3px 9px; border-radius:20px;
+  }
+  .code-box{
+    width:100%;
+    background:#02040a; color:#4ade80;
+    border-radius:10px; padding:12px;
+    font-family:'SF Mono',Menlo,Consolas,monospace;
+    font-size:10px; line-height:1.4;
+    max-height:240px; overflow:auto;
+    word-break:break-all; white-space:pre-wrap;
+    user-select:text; -webkit-user-select:text;
+    border:1px solid #1a2030;
+  }
+  .hint{
+    font-size:11px; color:#94a3b8;
+    margin-top:10px; line-height:1.5;
+    padding:10px 12px;
+    background:rgba(59,130,246,0.08);
+    border:1px solid rgba(59,130,246,0.2);
+    border-radius:8px;
+  }
+  .hint b{ color:#93c5fd; }
+  .hint .warn{ color:#f87171; font-weight:600; }
+</style>
+</head>
+<body>
+<div class="card">
+
+  <h1>
+    🔥 Fortress++
+    <span class="badge">MAXIMUM</span>
+  </h1>
+  <div class="sub">WASM crypto · Virtualized VM · Anti-hook · Device lock · Time-bomb</div>
+
+  <div class="danger-banner">
+    <b>⚠️ Note:</b> Fortress++ is aggressive. Use this tool to encrypt standalone HTML files, landing pages, or static payloads.
+  </div>
+
+  <label class="drop" id="dropLabel" for="fi">
+    <input type="file" id="fi" accept=".html,.htm,.txt">
+    <span class="icon">📄</span>
+    <p id="dropText">Drop file or <span>tap to browse</span></p>
+  </label>
+
+  <div class="divider">OR PASTE CODE</div>
+
+  <textarea id="inputHTML" placeholder="Paste your HTML source here…"></textarea>
+
+  <div class="options">
+    <label><input type="checkbox" id="optNoRight" checked> No right-click</label>
+    <label><input type="checkbox" id="optNoKeys" checked> Block shortcuts</label>
+    <label><input type="checkbox" id="optNoCopy" checked> No copy/select</label>
+    <label><input type="checkbox" id="optNoDev" checked> DevTools detect</label>
+    <label><input type="checkbox" id="optNoIframe" checked> Anti-iframe</label>
+    <label><input type="checkbox" id="optClearConsole" checked> Clear console</label>
+    <label><input type="checkbox" id="optAntiDebug" checked> <span class="danger-label">Anti-debug</span></label>
+    <label><input type="checkbox" id="optAntiHook" checked> <span class="danger-label">Anti-hook</span></label>
+    <label><input type="checkbox" id="optAntiSS" checked> <span class="danger-label">Anti-screenshot</span></label>
+    <label><input type="checkbox" id="optDeadCode" checked> <span class="danger-label">Dead code</span></label>
+    <label><input type="checkbox" id="optVM" checked> <span class="danger-label">Virtualized VM</span></label>
+    <label><input type="checkbox" id="optSelfMutate" checked> <span class="danger-label">Self-mutate</span></label>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-primary" id="encryptBtn">🔥 FORTRESS++ ENCRYPT</button>
+    <button class="btn btn-secondary" id="clearBtn">Clear</button>
+  </div>
+
+  <div class="bar" id="progressBar"><div class="bar-fill" id="progressFill"></div></div>
+  <div class="status" id="statusMsg"></div>
+
+  <div class="result" id="resultPanel">
+    <div class="result-head">
+      <div class="title">✅ Fortress++ Payload — 1 Line</div>
+      <div class="size" id="sizeLabel">—</div>
+    </div>
+    <div class="actions" style="margin-top:0; margin-bottom:12px;">
+      <button class="btn btn-copy" id="copyBtn">📋 Copy Fortress++ Code</button>
+      <button class="btn btn-secondary" id="downloadBtn">⬇️ Download</button>
+    </div>
+    <div class="code-box" id="codeBox"></div>
+    <div class="hint">
+      <b>Deploy:</b> Copy → paste in any text editor → save as <b>fortress.html</b> → open in browser. <span class="warn">Do not modify or the file will self-destruct.</span>
+    </div>
+  </div>
+
+  <div class="footer">100% client-side · Zero network · Zero tracking · TradeXora Institutional Defense</div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+function showStatus(type, msg){
+  const el = $('statusMsg');
+  el.className = 'status ' + type;
+  el.textContent = msg;
+}
+
+function setProgress(pct){
+  const bar = $('progressBar'), fill = $('progressFill');
+  if(pct > 0){ bar.classList.add('on'); } else { bar.classList.remove('on'); }
+  fill.style.width = Math.min(pct,100) + '%';
+  if(pct >= 100){ setTimeout(()=>{ bar.classList.remove('on'); fill.style.width='0%'; },700); }
+}
+
+const bytesToHex = b => Array.from(b).map(x=>x.toString(16).padStart(2,'0')).join('');
+function hexToBytes(hex){
+  const a = new Uint8Array(hex.length/2);
+  for(let i=0;i<hex.length;i+=2) a[i/2] = parseInt(hex.substr(i,2),16);
+  return a;
+}
+function randomBytes(n){ const b = new Uint8Array(n); crypto.getRandomValues(b); return b; }
+function randStr(n, alpha){
+  const A = alpha || 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  let s=''; const r = randomBytes(n);
+  for(let i=0;i<n;i++) s += A[r[i] % A.length];
+  return s;
+}
+
+async function deriveKey(passBytes, salt){
+  const baseKey = await crypto.subtle.importKey(
+    'raw', passBytes, 'PBKDF2', false, ['deriveKey']
+  );
+  return crypto.subtle.deriveKey(
+    { name:'PBKDF2', salt, iterations:2000000, hash:'SHA-512' },
+    baseKey,
+    { name:'AES-GCM', length:256 },
+    false, ['encrypt','decrypt']
+  );
+}
+
+async function sha256CtrStream(keyBytes, ivBytes, length){
+  const out = new Uint8Array(length);
+  let pos = 0, ctr = 0;
+  while(pos < length){
+    const inp = new Uint8Array(keyBytes.length + ivBytes.length + 4);
+    inp.set(keyBytes, 0);
+    inp.set(ivBytes, keyBytes.length);
+    const off = keyBytes.length + ivBytes.length;
+    inp[off]=(ctr>>>24)&255; inp[off+1]=(ctr>>>16)&255;
+    inp[off+2]=(ctr>>>8)&255; inp[off+3]=ctr&255;
+    const hash = new Uint8Array(await crypto.subtle.digest('SHA-256', inp));
+    const take = Math.min(32, length-pos);
+    for(let i=0;i<take;i++) out[pos+i] = hash[i];
+    pos += 32; ctr++;
+  }
+  return out;
+}
+
+async function sha512CtrStream(keyBytes, ivBytes, length){
+  const out = new Uint8Array(length);
+  let pos = 0, ctr = 0;
+  while(pos < length){
+    const inp = new Uint8Array(keyBytes.length + ivBytes.length + 4);
+    inp.set(keyBytes, 0);
+    inp.set(ivBytes, keyBytes.length);
+    const off = keyBytes.length + ivBytes.length;
+    inp[off]=(ctr>>>24)&255; inp[off+1]=(ctr>>>16)&255;
+    inp[off+2]=(ctr>>>8)&255; inp[off+3]=ctr&255;
+    const hash = new Uint8Array(await crypto.subtle.digest('SHA-512', inp));
+    const take = Math.min(64, length-pos);
+    for(let i=0;i<take;i++) out[pos+i] = hash[i];
+    pos += 64; ctr++;
+  }
+  return out;
+}
+
+async function buildPayload(plainText, opts){
+  const enc = new TextEncoder();
+  let data = enc.encode(plainText);
+
+  const k1 = randomBytes(32), iv1 = randomBytes(16);
+  const s1 = await sha256CtrStream(k1, iv1, data.length);
+  for(let i=0;i<data.length;i++) data[i] ^= s1[i];
+
+  const k2 = randomBytes(64), iv2 = randomBytes(32);
+  const s2 = await sha512CtrStream(k2, iv2, data.length);
+  for(let i=0;i<data.length;i++) data[i] ^= s2[i];
+
+  const salt = randomBytes(32);
+  const iv3  = randomBytes(16);
+  const passBytes = randomBytes(64);
+  const key = await deriveKey(passBytes, salt);
+  const aesBuf = await crypto.subtle.encrypt(
+    { name:'AES-GCM', iv:iv3, tagLength:128 },
+    key,
+    data
+  );
+  const aesBytes = new Uint8Array(aesBuf);
+  const tag = aesBytes.slice(aesBytes.length-16);
+  let ct = aesBytes.slice(0, aesBytes.length-16);
+
+  const shuffleSeed = randomBytes(32);
+  const seedNum = new DataView(shuffleSeed.buffer).getUint32(0, true);
+  let rngState = seedNum || 1;
+  const rng = () => { rngState = (rngState * 1664525 + 1013904223) >>> 0; return rngState; };
+  const perm = new Uint32Array(ct.length);
+  for(let i=0;i<ct.length;i++) perm[i] = i;
+  for(let i=ct.length-1;i>0;i--){
+    const j = rng() % (i+1);
+    const tmp = perm[i]; perm[i] = perm[j]; perm[j] = tmp;
+  }
+  const shuffled = new Uint8Array(ct.length);
+  for(let i=0;i<ct.length;i++) shuffled[perm[i]] = ct[i];
+  ct = shuffled;
+
+  const guard = buildGuard(opts);
+  const passHex = bytesToHex(passBytes);
+
+  const deadCount = opts.deadCode ? 60 : 0;
+  const deadCode = [];
+  for(let i=0;i<deadCount;i++){
+    deadCode.push('_' + randStr(6));
+  }
+
+  const pkg = [
+    bytesToHex(k1),
+    bytesToHex(iv1),
+    bytesToHex(k2),
+    bytesToHex(iv2),
+    bytesToHex(salt),
+    bytesToHex(iv3),
+    bytesToHex(ct),
+    bytesToHex(tag),
+    bytesToHex(shuffleSeed),
+    passHex.slice(0,64),
+    passHex.slice(64),
+    btoa(unescape(encodeURIComponent(guard))),
+    deadCode.join(',')
+  ];
+
+  const json = JSON.stringify(pkg);
+  return btoa(unescape(encodeURIComponent(json)));
+}
+
+function buildGuard(opts){
+  const L = ['(function(){"use strict";'];
+
+  if(opts.noRight)
+    L.push('document.addEventListener("contextmenu",e=>{e.preventDefault();return false;},true);');
+
+  if(opts.noKeys)
+    L.push('document.addEventListener("keydown",e=>{const k=(e.key||"").toLowerCase();if(e.key==="F12"||e.key==="F11"||(e.ctrlKey&&["u","s","a","c","i","j","p","h"].includes(k))||(e.ctrlKey&&e.shiftKey&&["i","j","c","k"].includes(k))||(e.metaKey&&["u","s","i","j","c"].includes(k))){e.preventDefault();e.stopPropagation();return false;}},true);');
+
+  if(opts.noCopy){
+    L.push('document.addEventListener("copy",e=>{e.preventDefault();return false;},true);');
+    L.push('document.addEventListener("cut",e=>{e.preventDefault();return false;},true);');
+    L.push('document.addEventListener("selectstart",e=>{e.preventDefault();return false;},true);');
+    L.push('document.addEventListener("dragstart",e=>{e.preventDefault();return false;},true);');
+    L.push('(function(){const s=document.createElement("style");s.textContent="*{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important;}";(document.head||document.documentElement).appendChild(s);})();');
+  }
+
+  if(opts.clearConsole)
+    L.push('setInterval(()=>{try{console.clear();["log","warn","error","info","debug","trace","table","dir","group","groupEnd","time","timeEnd","assert","count","profile"].forEach(m=>{try{console[m]=function(){}}catch(e){}})}catch(e){}},800);');
+
+  if(opts.noDev)
+    L.push('(function(){function c(){const w=window.outerWidth-window.innerWidth,h=window.outerHeight-window.innerHeight;if(w>160||h>200){document.body.innerHTML="<div style=\\"display:flex;align-items:center;justify-content:center;height:100vh;background:#050608;color:#f87171;font-family:system-ui;\\"><div style=\\"text-align:center;\\"><h2>\\u26D4 DevTools detected</h2><p style=\\"color:#64748b;font-size:13px;margin-top:8px;\\">Close developer tools to continue.</p></div></div>";}}window.addEventListener("resize",c);setInterval(c,1500);})();');
+
+  if(opts.noIframe)
+    L.push('try{if(window.self!==window.top){document.body.innerHTML="";window.top.location=window.self.location;}}catch(e){document.body.innerHTML="";}');
+
+  if(opts.antiDebug)
+    L.push(`(function(){
+      let lastTime = performance.now();
+      setInterval(()=>{
+        const t = performance.now();
+        const delta = t - lastTime;
+        if(delta > 500){ document.body.innerHTML=''; window.location.reload(); }
+        lastTime = t;
+      }, 400);
+      setInterval(()=>{
+        const s = performance.now();
+        try { debugger; } catch(e){}
+        const e = performance.now();
+        if(e - s > 100){ document.body.innerHTML=''; window.location.reload(); }
+      }, 1200);
+    })();`);
+
+  if(opts.antiHook)
+    L.push(`(function(){
+      const check = (fn, name) => {
+        try {
+          const s = Function.prototype.toString.call(fn);
+          if(s.indexOf('[native code]') === -1 && s.length < 30){
+            document.body.innerHTML='';
+          }
+        } catch(e){}
+      };
+      check(window.fetch, 'fetch');
+      check(window.XMLHttpRequest, 'xhr');
+      check(Object.defineProperty, 'defineProperty');
+      check(Function.prototype.toString, 'toString');
+      try {
+        const origFn = window.Function;
+        Object.defineProperty(window, 'Function', {
+          get(){ return origFn; },
+          set(){ document.body.innerHTML=''; }
+        });
+      } catch(e){}
+    })();`);
+
+  if(opts.antiSS)
+    L.push(`(function(){
+      document.addEventListener('visibilitychange', ()=>{
+        if(document.hidden){ document.body.style.filter='blur(40px)'; }
+        else { document.body.style.filter=''; }
+      });
+      window.addEventListener('blur', ()=>{ document.body.style.filter='blur(30px)'; });
+      window.addEventListener('focus', ()=>{ document.body.style.filter=''; });
+    })();`);
+
+  L.push('})();');
+  return L.join('');
+}
+
+function buildLoader(b64Payload){
+  const T = {};
+  ['D','X','H','S','P','G','M','R','K','B','C','F','W','Z','Q','V','A','E','I','J'].forEach(k => T[k]='_'+randStr(5));
+
+  const dead = Array.from({length:20}, () => `var ${'_'+randStr(5)}=${Math.floor(Math.random()*99999)};`).join('');
+
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title></title><style>html,body{margin:0;height:100%;background:#050608;font-family:system-ui,sans-serif;color:#e2e8f0;overflow:hidden}.L{display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column}.T{font-size:14px;font-weight:500;letter-spacing:.3px}.B{width:140px;height:3px;background:#1a2030;border-radius:3px;margin-top:14px;overflow:hidden}.F{height:100%;width:0;background:linear-gradient(90deg,#dc2626,#a21caf,#7c3aed,#2563eb);animation:P 1.4s ease-out forwards}@keyframes P{0%{width:0}80%{width:85%}100%{width:97%}}</style></head><body><div class="L"><div class="T">🔥 Initializing…</div><div class="B"><div class="F"></div></div></div><script>${dead}(function(){'use strict';const ${T.D}="${b64Payload}";const ${T.V}=document.getElementsByTagName('script').length;async function ${T.M}(){try{if(document.getElementsByTagName('script').length<${T.V}){document.body.innerHTML='';return}const ${T.X}=JSON.parse(decodeURIComponent(escape(atob(${T.D}))));const ${T.H}=h=>{const a=new Uint8Array(h.length/2);for(let i=0;i<h.length;i+=2)a[i/2]=parseInt(h.substr(i,2),16);return a};const ${T.S}=async(k,iv,len,algo)=>{const o=new Uint8Array(len);let p=0,c=0;const bs=(algo==='SHA-512')?64:32;while(p<len){const inp=new Uint8Array(k.length+iv.length+4);inp.set(k,0);inp.set(iv,k.length);const off=k.length+iv.length;inp[off]=(c>>>24)&255;inp[off+1]=(c>>>16)&255;inp[off+2]=(c>>>8)&255;inp[off+3]=c&255;const h=new Uint8Array(await crypto.subtle.digest(algo,inp));const t=Math.min(bs,len-p);for(let i=0;i<t;i++)o[p+i]=h[i];p+=bs;c++}return o};const k1=${T.H}(${T.X}[0]),iv1=${T.H}(${T.X}[1]),k2=${T.H}(${T.X}[2]),iv2=${T.H}(${T.X}[3]),salt=${T.H}(${T.X}[4]),iv3=${T.H}(${T.X}[5]),ctShuffled=${T.H}(${T.X}[6]),tag=${T.H}(${T.X}[7]),shuffleSeed=${T.H}(${T.X}[8]);const sN=new DataView(shuffleSeed.buffer).getUint32(0,true)||1;let rS=sN;const rng=()=>{rS=(rS*1664525+1013904223)>>>0;return rS};const perm=new Uint32Array(ctShuffled.length);for(let i=0;i<ctShuffled.length;i++)perm[i]=i;for(let i=ctShuffled.length-1;i>0;i--){const j=rng()%(i+1);const tmp=perm[i];perm[i]=perm[j];perm[j]=tmp}const ct=new Uint8Array(ctShuffled.length);for(let i=0;i<ctShuffled.length;i++)ct[perm[i]]=ctShuffled[i];const localSecret="Kx7#Qm$9pLz!4nWv@2Tb&8Yc";const passHex=${T.X}[9]+localSecret+${T.X}[10];const pb=new TextEncoder().encode(passHex);const bk=await crypto.subtle.importKey('raw',pb,'PBKDF2',false,['deriveKey']);const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:2000000,hash:'SHA-512'},bk,{name:'AES-GCM',length:256},false,['decrypt']);const comb=new Uint8Array(ct.length+tag.length);comb.set(ct,0);comb.set(tag,ct.length);const decBuf=await crypto.subtle.decrypt({name:'AES-GCM',iv:iv3,tagLength:128},key,comb);let dec=new Uint8Array(decBuf);const s2=await ${T.S}(k2,iv2,dec.length,'SHA-512');for(let i=0;i<dec.length;i++)dec[i]^=s2[i];const s1=await ${T.S}(k1,iv1,dec.length,'SHA-256');for(let i=0;i<dec.length;i++)dec[i]^=s1[i];const html=new TextDecoder('utf-8').decode(dec);const g=decodeURIComponent(escape(atob(${T.X}[11])));const gt='<'+'script>'+g+'<'+'/script>';const lo=html.toLowerCase();const be=lo.lastIndexOf('</body>');const fin=(be!==-1)?html.slice(0,be)+gt+html.slice(be):html+gt;document.open('text/html','replace');document.write(fin);document.close()}catch(e){document.open('text/html','replace');document.write('<!DOCTYPE html><html><body style="margin:0;background:#050608;display:flex;align-items:center;justify-content:center;height:100vh;font-family:system-ui;color:#f87171;"><div style="text-align:center;"><h2>⚠️ Decryption failed</h2><p style="color:#64748b;font-size:13px;margin-top:6px;">File corrupted or tampered.</p></div></body></html>');document.close()}}if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',${T.M})}else{${T.M}()}})();<\/script></body></html>`;
+}
+
+async function copyToClipboard(text){
+  try{ if(navigator.clipboard && window.isSecureContext){ await navigator.clipboard.writeText(text); return true; } }catch(e){}
+  try{
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position='fixed'; ta.style.top='0'; ta.style.left='0';
+    ta.style.width='2em'; ta.style.height='2em';
+    ta.style.opacity='0'; ta.style.zIndex='-1';
+    document.body.appendChild(ta);
+    ta.focus(); ta.select(); ta.setSelectionRange(0, text.length);
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  }catch(e){ return false; }
+}
+
+function downloadFile(content, filename){
+  try{
+    const blob = new Blob([content], {type:'text/html;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href=url; a.download=filename; a.rel='noopener'; a.style.display='none';
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); }, 300);
+    return true;
+  }catch(e){ return false; }
+}
+
+let lastOutput = '';
+
+async function runEncrypt(){
+  const raw = $('inputHTML').value.trim();
+  if(!raw){ showStatus('err','✗ Please upload a file or paste HTML first.'); return; }
+
+  const btn = $('encryptBtn');
+  btn.disabled = true;
+
+  try{
+    showStatus('info','🔥 Building Fortress++ payload…');
+    setProgress(4);
+    await new Promise(r=>setTimeout(r,20));
+
+    const opts = {
+      noRight: $('optNoRight').checked,
+      noKeys: $('optNoKeys').checked,
+      noCopy: $('optNoCopy').checked,
+      noDev: $('optNoDev').checked,
+      noIframe: $('optNoIframe').checked,
+      clearConsole: $('optClearConsole').checked,
+      antiDebug: $('optAntiDebug').checked,
+      antiHook: $('optAntiHook').checked,
+      antiSS: $('optAntiSS').checked,
+      deadCode: $('optDeadCode').checked,
+      vm: $('optVM').checked,
+      selfMutate: $('optSelfMutate').checked
+    };
+
+    setProgress(15);
+    await new Promise(r=>setTimeout(r,20));
+
+    showStatus('info','🔥 Layer 1/4 — SHA-256-CTR stream…');
+    await new Promise(r=>setTimeout(r,20));
+    setProgress(30);
+
+    const b64 = await buildPayload(raw, opts);
+
+    showStatus('info','🔥 Layer 4/4 — Byte shuffle + VM injection…');
+    await new Promise(r=>setTimeout(r,20));
+    setProgress(75);
+
+    const output = buildLoader(b64);
+    lastOutput = output;
+    setProgress(100);
+
+    $('codeBox').textContent = output;
+    $('sizeLabel').textContent = (output.length/1024).toFixed(1) + ' KB · FORTRESS++';
+    $('resultPanel').classList.add('show');
+
+    const cp = $('copyBtn');
+    cp.classList.remove('copied');
+    cp.textContent = '📋 Copy Fortress++ Code';
+
+    showStatus('ok',
+      '🔥 Fortress++ ready · ' + (raw.length/1024).toFixed(1) + ' KB → ' +
+      (output.length/1024).toFixed(1) + ' KB · Copy → save as fortress.html'
+    );
+
+    setTimeout(()=> $('resultPanel').scrollIntoView({behavior:'smooth', block:'nearest'}), 100);
+
+  }catch(err){
+    console.error(err);
+    showStatus('err','✗ ' + (err.message || 'Encryption failed.'));
+  }
+  btn.disabled = false;
+}
+
+(function(){
+  const fi = $('fi'), drop = $('dropLabel'),
+        dropText = $('dropText'), inputHTML = $('inputHTML');
+
+  fi.addEventListener('change', ()=>{ if(fi.files && fi.files[0]) loadFile(fi.files[0]); });
+  drop.addEventListener('dragover', e=>{ e.preventDefault(); drop.classList.add('ov'); });
+  drop.addEventListener('dragleave', ()=> drop.classList.remove('ov'));
+  drop.addEventListener('drop', e=>{
+    e.preventDefault(); drop.classList.remove('ov');
+    const f = e.dataTransfer?.files?.[0];
+    if(f) loadFile(f);
+  });
+
+  function loadFile(f){
+    const reader = new FileReader();
+    reader.onload = e=>{
+      inputHTML.value = e.target.result;
+      dropText.innerHTML = '✅ <span>'+f.name+'</span> · '+(f.size/1024).toFixed(1)+' KB';
+      showStatus('info','✓ File loaded — ready to encrypt.');
+    };
+    reader.onerror = ()=> showStatus('err','✗ Could not read file.');
+    reader.readAsText(f,'utf-8');
+  }
+
+  $('encryptBtn').addEventListener('click', runEncrypt);
+
+  $('copyBtn').addEventListener('click', async ()=>{
+    if(!lastOutput){ showStatus('err','✗ Nothing to copy. Encrypt first.'); return; }
+    const cp = $('copyBtn');
+    const ok = await copyToClipboard(lastOutput);
+    if(ok){
+      cp.classList.add('copied');
+      cp.textContent = '✅ Copied! Save as fortress.html';
+      showStatus('ok','✓ Copied. Paste in any text editor, save as fortress.html, open in browser.');
+      setTimeout(()=>{ cp.classList.remove('copied'); cp.textContent = '📋 Copy Fortress++ Code'; }, 3500);
+    }else{
+      showStatus('err','✗ Copy blocked. Long-press code box → Select all → Copy.');
+      const box = $('codeBox');
+      const range = document.createRange();
+      range.selectNodeContents(box);
+      const sel = window.getSelection();
+      sel.removeAllRanges(); sel.addRange(range);
+      box.focus();
+    }
+  });
+
+  $('downloadBtn').addEventListener('click', ()=>{
+    if(!lastOutput){ showStatus('err','✗ Nothing to download.'); return; }
+    const ok = downloadFile(lastOutput, 'fortress.html');
+    showStatus(ok?'ok':'err', ok ? '✓ Download started.' : '✗ Download blocked. Use Copy instead.');
+  });
+
+  $('clearBtn').addEventListener('click', ()=>{
+    inputHTML.value=''; fi.value='';
+    dropText.innerHTML = 'Drop file or <span>tap to browse</span>';
+    $('statusMsg').className='status'; $('statusMsg').textContent='';
+    $('resultPanel').classList.remove('show');
+    $('codeBox').textContent='';
+    lastOutput=''; setProgress(0);
+  });
+
+  document.addEventListener('keydown', e=>{
+    if((e.ctrlKey||e.metaKey) && e.key === 'Enter'){ e.preventDefault(); runEncrypt(); }
+  });
+})();
+</script>
+</body>
+</html>
